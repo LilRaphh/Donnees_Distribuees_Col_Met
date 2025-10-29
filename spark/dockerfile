@@ -1,0 +1,17 @@
+# Utilise l'image de base fonctionnelle
+FROM apache/spark:3.5.0
+
+# 1. Installer pip (si non présent) et les outils nécessaires
+# L'image officielle apache/spark:3.5.0 est souvent basée sur Debian/Ubuntu ou similaire.
+# La commande 'pip' est souvent disponible, mais si vous avez des problèmes, vous devrez installer python3-pip.
+# Pour la simplicité, nous assumons que 'pip' est déjà là ou que nous pouvons l'installer.
+
+USER root
+
+# Installer kafka-python (c'est le nom du package pour le module 'kafka')
+# Vous pouvez ajouter d'autres dépendances comme pandas, numpy, etc., ici si nécessaire.
+# Le '--no-cache-dir' permet de garder l'image petite.
+RUN pip install kafka-python --no-cache-dir
+
+# Il est préférable de revenir à l'utilisateur non-root si l'image de base le permet
+USER spark

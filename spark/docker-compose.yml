@@ -2,7 +2,8 @@ version: "3.9"
 
 services:
   spark-master:
-    image: apache/spark:3.5.0
+    # image: apache/spark:3.5.0
+    build: .
     container_name: spark-master
     networks:
       - nifi-kafka-network
@@ -16,7 +17,8 @@ services:
       - ./spark-apps:/opt/spark/work-dir
 
   spark-worker:
-    image: apache/spark:3.5.0
+    # image: apache/spark:3.5.0
+    build: .
     container_name: spark-worker
     networks:
       - nifi-kafka-network
