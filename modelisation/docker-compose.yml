@@ -1,0 +1,57 @@
+version: "3.8"
+
+networks:
+  nifi-postgres-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
+services:
+  db:
+    image: postgres:16
+    container_name: donneeDistrib_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: skayne
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: donneeDistrib_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nifi-postgres-network
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: donneeDistribuee_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@skayne.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - nifi-postgres-network
+
+  nifi:
+    image: apache/nifi:latest
+    container_name: nifi
+    restart: always
+    ports:
+      - "8443:8443"
+    networks:
+      - nifi-postgres-network
+    depends_on:
+      - db
+    environment:
+      NIFI_WEB_HTTPS_PORT: 8443
+      NIFI_WEB_HTTPS_HOST: 0.0.0.0
+      SINGLE_USER_CREDENTIALS_USERNAME: admin
+      SINGLE_USER_CREDENTIALS_PASSWORD: admin
+    volumes:
+      - ./nifi_data:/opt/nifi/nifi-current/data
+

@@ -1,0 +1,7 @@
+[
+    {"id":11, "nom":"Dupont", "prenom":"deligones", "email":"jean.dupont@example.com", "age":46, "ville":"Nantes"},
+    {"id":12, "nom":"Martin", "prenom":"Richard", "email":"richard.martin@example.com", "age":75, "ville":"Lyon"},
+    {"id":13, "nom":"Bernard", "prenom":"Lucien", "email":"lucien.bernard@example.com", "age":70, "ville":"Marseille"},
+    {"id":14, "nom":"Petit", "prenom":"Sophiette", "email":"sophiette.petit@example.com", "age":8, "ville":"Toulouse"},
+    {"id":15, "nom":"Leroy", "prenom":"Marc", "email":"marc.leroy@example.com", "age":97, "ville":"Nice"}
+]
