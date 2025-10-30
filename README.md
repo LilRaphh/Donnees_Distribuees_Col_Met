@@ -1,4 +1,4 @@
-# 🚀 Projet M2 Data -- Pipeline ETL Distribué (NiFi / Kafka / Cassandra)
+# 🚀 Projet M2 Data -- Pipeline ETL Distribué (NiFi / Kafka / Postgre)
 
 ## 📌 Contexte
 
@@ -27,10 +27,10 @@ API (OpenSky / AirLabs / OpenAIP)
   [Apache Spark Streaming] → traitement & agrégation
         │
         ▼
-  [Apache Cassandra] → stockage distribué
+  [Postgre] → stockage distribué
         │
         ▼
-  [Power BI / Grafana] → visualisation
+  [Grafana] → visualisation
 ```
 
 ------------------------------------------------------------------------
@@ -52,17 +52,17 @@ API (OpenSky / AirLabs / OpenAIP)
   Streaming**                                  Kafka, nettoyage, jointures
                                                et calculs
 
-  **Cassandra**               Stockage         Base distribuée pour la
+  **Postgre**               Stockage         Base de donnée pour la
                                                persistance et la
                                                consultation des données
                                                agrégées
 
-  **Power BI / Grafana**      Visualisation    Création de tableaux de bord
+  **Grafana**                 Visualisation    Création de tableaux de bord
                                                à partir des données stockées
 
   **Docker Compose**          Infrastructure   Orchestration des services
                                                (NiFi, Kafka, Spark,
-                                               Cassandra, etc.)
+                                               Postgre, etc.)
   --------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
@@ -71,7 +71,7 @@ API (OpenSky / AirLabs / OpenAIP)
 
 ### 1. **Ingestion -- Apache NiFi**
 
--   **InvokeHTTP** : appelle l'API (ex. OpenSky) toutes les 10
+-   **InvokeHTTP** : appelle l'API (ex. OpenSky : *https://opensky-network.org/api/states/all*) toutes les 10
     secondes.\
 -   **EvaluateJsonPath** : extrait les champs pertinents (`timestamp`,
     `icao24`, `lat`, `lon`, `altitude`, `velocity`, etc.).\
@@ -105,7 +105,7 @@ API (OpenSky / AirLabs / OpenAIP)
     -   Vitesse moyenne par zone géographique.
     -   Détection d'altitudes incohérentes.
 
-### 4. **Stockage -- Apache Cassandra**
+### 4. **Stockage -- Postgresql**
 
 -   Création d'une **keyspace** et d'une **table flights_agg** :
 
@@ -123,12 +123,12 @@ API (OpenSky / AirLabs / OpenAIP)
 -   Écriture depuis Spark :
 
     ``` python
-    df.writeStream     .format("org.apache.spark.sql.cassandra")     .option("keyspace", "flights")     .option("table", "flights_agg")     .start()
+    df.writeStream     .format("org.apache.spark.sql.Postgre")     .option("keyspace", "flights")     .option("table", "flights_agg")     .start()
     ```
 
 ### 5. **Visualisation**
 
--   Connexion à Cassandra (connecteur ODBC / natif).\
+-   Connexion à Postgre (connecteur ODBC / natif).\
 -   Exemples :
     -   Carte des positions d'avions (lat/lon).
     -   Graphiques de vitesse moyenne.
@@ -144,7 +144,7 @@ API (OpenSky / AirLabs / OpenAIP)
     ├── spark/
     │   ├── stream_processing.py
     │   └── requirements.txt
-    ├── cassandra/
+    ├── Postgre/
     │   ├── init.cql
     │   └── config/
     ├── docs/
@@ -189,7 +189,7 @@ docker exec -it spark-master spark-submit /opt/spark/app/stream_processing.py
 
 ### 6. Visualiser les résultats
 
--   Se connecter à Cassandra avec Power BI / Grafana.\
+-   Se connecter à Postgre avec Grafana.\
 -   Charger les tables `flights_agg`.
 
 ------------------------------------------------------------------------
@@ -205,4 +205,6 @@ docker exec -it spark-master spark-submit /opt/spark/app/stream_processing.py
 ## 🧠 Auteurs
 
 Projet réalisé dans le cadre du **Master 2 Data Science**\
-**Durée :** 1 semaine --- **Travail en binôme**
+**Durée :** 1 semaine --- **Travail en binôme** \
+- METOIS Clément
+- COLNOT Raphael
