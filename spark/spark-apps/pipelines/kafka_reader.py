@@ -12,6 +12,7 @@ class KafkaReader:
             .option("kafka.bootstrap.servers", self.servers) \
             .option("subscribe", self.topic) \
             .option("startingOffsets", "latest") \
+            .option("failOnDataLoss", "false") \
             .load()
         print("✅ Lecture Kafka initialisée")
         return df.selectExpr("CAST(value AS STRING) as json_value")

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title or "Admin Dashboard" }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1E40AF',   // bleu foncé
+            secondary: '#111827', // presque noir
+            accent: '#3B82F6'     // bleu clair pour highlights
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-secondary text-white min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-primary shadow-lg">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex justify-between h-16 items-center">
+        <div class="flex-shrink-0 font-bold text-xl">Admin Dashboard</div>
+        <div class="flex space-x-4">
+          <a href="{{ url_for('index') }}" class="hover:bg-accent px-3 py-2 rounded">Accueil</a>
+          {% for app in apps %}
+          <a href="{{ url_for('app_page', app_name=app) }}" class="hover:bg-accent px-3 py-2 rounded">{{ app }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    {% block content %}
+    {% endblock %}
+  </main>
+
+</body>
+</html>

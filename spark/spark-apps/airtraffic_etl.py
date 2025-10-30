@@ -4,7 +4,7 @@ from utils.postgres_utils import check_jdbc_connection
 from pipelines.kafka_reader import KafkaReader
 from pipelines.transformer import Transformer
 from pipelines.postgres_writer import PostgresWriter
-import config.settings as settings
+import config.settings_flight_position as settings
 
 # Initialiser Spark
 spark = get_spark_session()
@@ -21,7 +21,7 @@ df_json = reader.read_stream()
 
 # Transformer les données
 transformer = Transformer(spark)
-df_clean = transformer.transform(df_json)
+df_clean = transformer.transform_flight(df_json)
 
 # Écrire vers PostgreSQL
 writer = PostgresWriter(settings.POSTGRES_URL, settings.POSTGRES_TABLE, settings.POSTGRES_USER, settings.POSTGRES_PASSWORD, settings.POSTGRES_DRIVER)
