@@ -205,6 +205,12 @@ docker exec -it spark-master /opt/spark/bin/spark-submit --master spark://spark-
 -   Se connecter à Cassandra avec / Grafana.\
 -   Charger les tables `flights_agg`.
 
+<img width="1690" height="879" alt="image" src="https://github.com/user-attachments/assets/f3559233-305d-4eb9-8f91-8fb2f9532663" />
+
+<img width="1690" height="879" alt="image" src="https://github.com/user-attachments/assets/2b614ff7-408b-4c05-b3ef-72d7fa75d6b2" />
+
+
+
 ------------------------------------------------------------------------
 
 ## 🗝️ APIs utilisées
