@@ -1,4 +1,4 @@
-# 🚀 Projet M2 Data -- Pipeline ETL Distribué (NiFi / Kafka / Cassandra)
+# 🚀 Projet M2 Data -- Pipeline ETL Distribué (NiFi / Kafka / Postgres)
 
 ## 📌 Contexte
 
@@ -27,7 +27,7 @@ API (OpenSky / AirLabs / OpenAIP)
   [Apache Spark Streaming] → traitement & agrégation
         │
         ▼
-  [Apache Cassandra] → stockage distribué
+  [Postgres] → stockage distribué → Visualisation dans PgAdmin
         │
         ▼
   [Power BI / Grafana] → visualisation
@@ -52,17 +52,17 @@ API (OpenSky / AirLabs / OpenAIP)
   Streaming**                                  Kafka, nettoyage, jointures
                                                et calculs
 
-  **Cassandra**               Stockage         Base distribuée pour la
+  **Postgres**                Stockage         Base distribuée pour la
                                                persistance et la
                                                consultation des données
                                                agrégées
 
-  **Power BI / Grafana**      Visualisation    Création de tableaux de bord
+  **Grafana**                 Visualisation    Création de tableaux de bord
                                                à partir des données stockées
 
-  **Docker Compose**          Infrastructure   Orchestration des services
+  **Docker**                  Infrastructure   Orchestration des services
                                                (NiFi, Kafka, Spark,
-                                               Cassandra, etc.)
+                                               Postgres, etc.)
   --------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
@@ -72,12 +72,11 @@ API (OpenSky / AirLabs / OpenAIP)
 ### 1. **Ingestion -- Apache NiFi**
 
 -   **InvokeHTTP** : appelle l'API (ex. OpenSky) toutes les 10
-    secondes.\
--   **EvaluateJsonPath** : extrait les champs pertinents (`timestamp`,
-    `icao24`, `lat`, `lon`, `altitude`, `velocity`, etc.).\
--   **AttributesToJSON** : reformate les données en JSON.\
+    secondes.
+-   **EvaluateJsonPath** : extrait les champs pertinents.
+-   **AttributesToJSON** : reformate les données en JSON.
 -   **PublishKafkaRecord_2\_0** : envoie les messages vers le topic
-    Kafka `flights_positions`.
+    Kafka `{topic}`.
 
 ### 2. **Streaming -- Apache Kafka**
 
@@ -94,7 +93,7 @@ API (OpenSky / AirLabs / OpenAIP)
 -   Lecture du flux Kafka en temps réel :
 
     ``` python
-    df = spark       .readStream       .format("kafka")       .option("kafka.bootstrap.servers", "kafka:9092")       .option("subscribe", "flights_positions")       .load()
+    df = spark.readStream.format("kafka").option("kafka.bootstrap.servers", "kafka:9092").option("subscribe", "flights_positions").load()
     ```
 
 -   Nettoyage et jointure avec tables de référence (AirLabs / CSV).
@@ -105,30 +104,15 @@ API (OpenSky / AirLabs / OpenAIP)
     -   Vitesse moyenne par zone géographique.
     -   Détection d'altitudes incohérentes.
 
-### 4. **Stockage -- Apache Cassandra**
+### 4. **Stockage -- Postgres**
 
--   Création d'une **keyspace** et d'une **table flights_agg** :
+-   Création des tables **airports, runways, opensky_positions**
 
-    ``` sql
-    CREATE KEYSPACE flights WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-    CREATE TABLE flights.flights_agg (
-        flight_id text PRIMARY KEY,
-        country text,
-        avg_speed float,
-        altitude int,
-        timestamp timestamp
-    );
-    ```
-
--   Écriture depuis Spark :
-
-    ``` python
-    df.writeStream     .format("org.apache.spark.sql.cassandra")     .option("keyspace", "flights")     .option("table", "flights_agg")     .start()
-    ```
+-   Écriture depuis Spark
 
 ### 5. **Visualisation**
 
--   Connexion à Cassandra (connecteur ODBC / natif).\
+-   Connexion à Postgres (connecteur ODBC / natif).\
 -   Exemples :
     -   Carte des positions d'avions (lat/lon).
     -   Graphiques de vitesse moyenne.
@@ -138,19 +122,48 @@ API (OpenSky / AirLabs / OpenAIP)
 
 ## 🧱 Structure du dépôt
 
-    📁 projet-m2-data/
-    ├── docker-compose.yml
-    ├── nifi_template.xml
-    ├── spark/
-    │   ├── stream_processing.py
-    │   └── requirements.txt
-    ├── cassandra/
-    │   ├── init.cql
-    │   └── config/
-    ├── docs/
-    │   ├── architecture.png
-    │   └── notes.md
-    └── README.md
+        ├── Donnees_Distribuees_Col_Met
+        │   ├── grafana
+        │   │   └── docker-compose.yml
+        │   ├── kafka
+        │   │   ├── docker-compose.yml
+        │   │   └── offsetexplorer.sh
+        │   ├── modelisation
+        │   │   ├── client.json
+        │   │   ├── clients_compl.csv
+        │   │   ├── docker-compose.yml
+        │   │   ├── drivers
+        │   │   ├── nifi_data
+        │   │   └── clients_compl.csv
+        │   ├── README.md
+        │   ├── spark
+        │   │   ├── docker-compose.yml
+        │   │   ├── dockerfile
+        │   │   └── spark-apps
+        │   │       ├── airports_etl.py
+        │   │       ├── airtraffic_etl.py
+        │   │       ├── config
+        │   │       │   ├── settings_airports.py
+        │   │       │   └── settings_flight_position.py
+        │   │       ├── pipelines
+        │   │       │   ├── kafka_reader.py
+        │   │       │   ├── postgres_writer.py
+        │   │       │   └── transformer.py
+        │   │       ├── requirements.txt
+        │   │       └── utils
+        │   │           ├── kafka_utils.py
+        │   │           ├── postgres_utils.py
+        │   │           └── spark_utils.py
+        │   └── web
+        │       ├── app.py
+        │       ├── templates
+        │       │   ├── app.html
+        │       │   ├── dashboard.html
+        │       │   ├── index.html
+        │       │   └── layout.html
+        │       └── utils
+        │           ├── db_utils.py
+        │           └── spark_utils.py
 
 ------------------------------------------------------------------------
 
@@ -184,12 +197,12 @@ docker exec -it kafka kafka-topics --list --bootstrap-server kafka:9092
 ### 5. Lancer Spark Streaming
 
 ``` bash
-docker exec -it spark-master spark-submit /opt/spark/app/stream_processing.py
+docker exec -it spark-master /opt/spark/bin/spark-submit --master spark://spark-master:7077 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,org.postgresql:postgresql:42.7.3 --conf spark.driver.extraJavaOptions="-Duser.home=/tmp -Dlog4j.configuration=file:/dev/null" --conf spark.executor.extraJavaOptions="-Duser.home=/tmp" /opt/spark/work-dir/airtraffic_etl.py
 ```
 
 ### 6. Visualiser les résultats
 
--   Se connecter à Cassandra avec Power BI / Grafana.\
+-   Se connecter à Cassandra avec / Grafana.\
 -   Charger les tables `flights_agg`.
 
 ------------------------------------------------------------------------
